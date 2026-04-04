@@ -1,3 +1,75 @@
-# Default ignored files
-/shelf/
-/workspace.xml
+# Flutter / Dart build artifacts
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.class
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+shelf/
+workspace.xml
+misc.xml
+modules.xml
+Dart_SDK.xml
+deviceStreaming.xml
+
+# Android
+android/.gradle/
+android/local.properties
+android/captures/
+android/.cxx/
+android/key.properties
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/flutter_export_environment.sh
+
+# macOS
+macos/Pods/
+macos/.symlinks/
+
+# Build output files
+dart_build.d
+dart_build.stamp
+dart_build_result.json
+hook.dill
+hook.dill.d
+hook.dependencies_hash_file.json
+dependencies.dependencies_hash_file.json
+gen_dart_plugin_registrant.stamp
+gen_localizations.stamp
+_composite.stamp
+.last_build_id
+last_build_run.json
+outputs.json
+output.json
+input.json
+package_graph.json
+version
+
+# Log files
+stdout.txt
+stderr.txt
+
+# Local config
+local.properties
+
+# Cache
+.filecache
+.lock
+
+# Generated files
+GeneratedPluginRegistrant.java
+package_config.json
+
+# Zip / binary assets that should not be in source control
+*.zip
