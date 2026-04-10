@@ -309,5 +309,5 @@ flutter build appbundle --release
 | Image Caching | cached_network_image |
 | Calendar | table_calendar |
 
-Author:
+## Author
 Yaseen Haider
