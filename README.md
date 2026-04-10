@@ -308,3 +308,6 @@ flutter build appbundle --release
 | Video Calls | Agora RTC Engine |
 | Image Caching | cached_network_image |
 | Calendar | table_calendar |
+
+Author:
+Yaseen Haider
