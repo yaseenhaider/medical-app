@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}MediConnect | Professional Medical Platform{% endblock %}
+{% block content %}
+<h1>Professional Medical Website</h1>
+<p>Secure, role-based platform for patients, doctors, and admins with real account creation and database-backed workflows.</p>
+<div class="grid">
+  <div class="card"><h2>Patients</h2><p>Create accounts, manage appointments, and track consultations.</p></div>
+  <div class="card"><h2>Doctors</h2><p>Review appointment queues and deliver care efficiently.</p></div>
+  <div class="card"><h2>Admins</h2><p>Oversee users and operational metrics from a dedicated dashboard.</p></div>
+</div>
+{% if not user.is_authenticated %}
+  <p><a class="btn" href="{% url 'accounts:signup' %}">Create account</a> <a class="btn btn-secondary" href="{% url 'accounts:login' %}">Login</a></p>
+{% endif %}
+{% endblock %}

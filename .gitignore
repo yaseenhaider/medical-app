@@ -73,3 +73,9 @@ package_config.json
 
 # Zip / binary assets that should not be in source control
 *.zip
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*.sqlite3
+backend/staticfiles/
