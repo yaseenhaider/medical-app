@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MediConnect{% endblock %}</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; margin: 0; background: #f4f7fb; color: #1f2937; }
+    header { background: #0f766e; color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+    main { max-width: 960px; margin: 24px auto; background: #fff; padding: 24px; border-radius: 10px; box-shadow: 0 5px 24px rgba(15, 23, 42, 0.08); }
+    a { color: #0f766e; text-decoration: none; }
+    nav a { color: #fff; margin-left: 12px; }
+    h1, h2 { margin-top: 0; }
+    .btn { background: #0f766e; color: #fff; border: 0; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
+    .btn-secondary { background: #1d4ed8; }
+    .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
+    .messages { list-style: none; padding-left: 0; }
+    .messages li { padding: 10px 12px; border-radius: 6px; margin-bottom: 10px; background: #ecfeff; }
+    form p { margin-bottom: 12px; }
+    input, select { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #e5e7eb; text-align: left; padding: 10px 6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>MediConnect</strong>
+    <nav>
+      <a href="/">Home</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'accounts:dashboard' %}">Dashboard</a>
+        <a href="{% url 'clinic:appointments' %}">Appointments</a>
+        <a href="{% url 'accounts:logout' %}">Logout</a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}">Login</a>
+        <a href="{% url 'accounts:signup' %}">Sign up</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main>
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,4 +1,54 @@
 # MediConnect — Doctor Appointment & Telemedicine App
+
+## Real Backend Upgrade (Django + PostgreSQL)
+
+This repository now includes a production-oriented backend at `/backend` to support real account creation, real authentication, role-based dashboards, and database-backed medical workflows.
+
+### 1) Full medical website feature plan
+- Patient onboarding: signup/login, profile, appointment history
+- Doctor workspace: role-specific dashboard and patient appointment queue
+- Admin operations: user role oversight, appointment volume monitoring, Django admin management
+- Core medical data: persistent appointment entities with lifecycle status
+- Security baseline: authenticated routes, password validation, CSRF/session handling
+
+### 2) Real app architecture introduced
+- **Backend stack:** Django 5 + PostgreSQL driver (`psycopg`)
+- **Apps:** `accounts` (auth/roles/dashboards), `clinic` (appointments)
+- **Custom user model:** `MedicalUser` with roles (`patient`, `doctor`, `admin`)
+- **Database:** PostgreSQL via environment variables (`POSTGRES_*`), SQLite fallback for local quickstart
+
+### 3) Signup/Login + Dashboard + Admin flows
+- Real signup creates user records in the database
+- Real login/logout using Django auth
+- Role-based dashboard routing:
+  - `/dashboard/patient/`
+  - `/dashboard/doctor/`
+  - `/dashboard/admin/`
+- Admin flow includes operational summary page + Django admin site (`/admin/`)
+
+### 4) Initial code changes completed
+- Added backend project scaffold in `/backend`
+- Added real auth models/forms/views/routes/templates
+- Added appointment model and appointment list route
+- Added backend tests for signup and role-based dashboard redirect
+
+### Run the backend locally
+```bash
+cd backend
+python -m pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+### PostgreSQL configuration (production-ready path)
+Set these environment variables before running migrations/server:
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
+
 ## Complete Setup Guide for Android Studio
 
 ---

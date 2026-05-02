@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Doctor Dashboard | MediConnect{% endblock %}
+{% block content %}
+<h1>Doctor Dashboard</h1>
+<p>Upcoming consultations assigned to you.</p>
+{% if appointments %}
+<table>
+  <tr><th>Patient</th><th>Time</th><th>Status</th><th>Reason</th></tr>
+  {% for appt in appointments %}
+    <tr>
+      <td>{{ appt.patient.get_full_name|default:appt.patient.email }}</td>
+      <td>{{ appt.scheduled_at }}</td>
+      <td>{{ appt.get_status_display }}</td>
+      <td>{{ appt.reason }}</td>
+    </tr>
+  {% endfor %}
+</table>
+{% else %}
+  <p>No appointments assigned.</p>
+{% endif %}
+{% endblock %}
