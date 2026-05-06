@@ -9,6 +9,18 @@ import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CUSTOM EXCEPTIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Thrown when a booking slot is no longer available (business-logic error).
+class SlotUnavailableException implements Exception {
+  final String message;
+  const SlotUnavailableException([this.message = 'This slot is no longer available. Please select another time.']);
+  @override
+  String toString() => message;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // AUTH SERVICE
 // ─────────────────────────────────────────────────────────────────────────────
 class AuthService {
@@ -163,15 +175,21 @@ class FirestoreService {
   // ─── Doctors ──────────────────────────────────────────────────────────────
 
   Stream<List<DoctorModel>> getDoctors({String? specialty}) {
-    Query<Map<String, dynamic>> q = _db.collection('doctors')
-        .where('isAvailable', isEqualTo: true)
-        .orderBy('rating', descending: true);
-    if (specialty != null && specialty.isNotEmpty) {
-      q = q.where('specialty', isEqualTo: specialty);
+    try {
+      Query<Map<String, dynamic>> q = _db.collection('doctors')
+          .where('isAvailable', isEqualTo: true)
+          .orderBy('rating', descending: true);
+      if (specialty != null && specialty.isNotEmpty) {
+        q = q.where('specialty', isEqualTo: specialty);
+      }
+      return q.snapshots().map(
+        (s) => s.docs.map((d) => DoctorModel.fromJson(d.data())).toList(),
+      );
+    } catch (e) {
+      // Return an empty stream on setup errors (e.g. missing composite index).
+      debugPrint('[FirestoreService] getDoctors error: $e');
+      return const Stream.empty();
     }
-    return q.snapshots().map(
-      (s) => s.docs.map((d) => DoctorModel.fromJson(d.data())).toList(),
-    );
   }
 
   Future<DoctorModel?> getDoctorById(String uid) async {
@@ -223,6 +241,7 @@ class FirestoreService {
     required DoctorModel doctor,
     required String date,
     required String time,
+    int maxRetries = 3,
   }) async {
     final slotRef = _db
         .collection('doctors').doc(doctor.uid)
@@ -230,35 +249,48 @@ class FirestoreService {
 
     final apptId = _uuid.v4();
 
-    await _db.runTransaction((tx) async {
-      final slot = await tx.get(slotRef);
-      if (!slot.exists || (slot.data()?['isBooked'] == true)) {
-        throw Exception('This slot is no longer available. Please select another time.');
+    // Exponential-backoff retry for transient Firestore failures.
+    for (int attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        await _db.runTransaction((tx) async {
+          final slot = await tx.get(slotRef);
+          if (!slot.exists || (slot.data()?['isBooked'] == true)) {
+            throw const SlotUnavailableException();
+          }
+          // Mark slot booked
+          tx.update(slotRef, {'isBooked': true, 'patientId': patientId});
+
+          // Create appointment
+          final apptRef = _db.collection('appointments').doc(apptId);
+          tx.set(apptRef, {
+            'id': apptId,
+            'patientId': patientId,
+            'patientName': patientName,
+            'patientPhoto': patientPhoto,
+            'doctorId': doctor.uid,
+            'doctorName': doctor.name,
+            'doctorSpecialty': doctor.specialty,
+            'doctorPhoto': doctor.photoUrl,
+            'date': date,
+            'time': time,
+            'status': 'pending',
+            'notes': '',
+            'fee': doctor.fee,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        });
+        return apptId;
+      } on SlotUnavailableException {
+        rethrow;
+      } on Exception catch (e) {
+        if (attempt == maxRetries - 1) rethrow;
+        // Exponential backoff: 200 ms, 400 ms, 800 ms for attempts 0, 1, 2.
+        await Future.delayed(Duration(milliseconds: 200 * (1 << attempt)));
       }
-      // Mark slot booked
-      tx.update(slotRef, {'isBooked': true, 'patientId': patientId});
+    }
 
-      // Create appointment
-      final apptRef = _db.collection('appointments').doc(apptId);
-      tx.set(apptRef, {
-        'id': apptId,
-        'patientId': patientId,
-        'patientName': patientName,
-        'patientPhoto': patientPhoto,
-        'doctorId': doctor.uid,
-        'doctorName': doctor.name,
-        'doctorSpecialty': doctor.specialty,
-        'doctorPhoto': doctor.photoUrl,
-        'date': date,
-        'time': time,
-        'status': 'pending',
-        'notes': '',
-        'fee': doctor.fee,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    });
-
-    return apptId;
+    // All retry attempts exhausted without success.
+    throw Exception('bookAppointment failed after $maxRetries attempts');
   }
 
   Future<void> updateAppointmentStatus(
@@ -354,7 +386,9 @@ class FirestoreService {
         .where('participants', arrayContains: uid)
         .orderBy('lastMessageTime', descending: true)
         .snapshots()
-        .map((s) => s.docs.map((d) => ChatRoomModel.fromJson(d.data(), d.id)).toList());
+        .map((s) => s.docs
+            .map((d) => ChatRoomModel.fromJson(d.data(), d.id, currentUserId: uid))
+            .toList());
   }
 
   Future<void> markMessagesRead(String chatId, String uid) async {
