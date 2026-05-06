@@ -323,17 +323,40 @@ class ChatRoomModel {
     this.otherUserPhoto = '',
   });
 
-  factory ChatRoomModel.fromJson(Map<String, dynamic> json, String chatId) => ChatRoomModel(
-    chatId: chatId,
-    participants: List<String>.from(json['participants'] ?? []),
-    lastMessage: json['lastMessage'] ?? '',
-    lastMessageTime: json['lastMessageTime'] != null
-        ? (json['lastMessageTime'] as dynamic).toDate()
-        : null,
-    unreadCount: Map<String, int>.from(json['unreadCount'] ?? {}),
-    otherUserName: json['otherUserName'] ?? '',
-    otherUserPhoto: json['otherUserPhoto'] ?? '',
-  );
+  factory ChatRoomModel.fromJson(
+    Map<String, dynamic> json,
+    String chatId, {
+    String currentUserId = '',
+  }) {
+    // The chat document stores names/photos with dynamic keys like
+    // `otherUserName_<currentUserId>` so each participant sees the
+    // other person's info.  Fall back to the bare key for legacy docs.
+    return ChatRoomModel(
+      chatId: chatId,
+      participants: List<String>.from(json['participants'] ?? []),
+      lastMessage: json['lastMessage'] ?? '',
+      lastMessageTime: json['lastMessageTime'] != null
+          ? (json['lastMessageTime'] as dynamic).toDate()
+          : null,
+      unreadCount: Map<String, int>.from(json['unreadCount'] ?? {}),
+      otherUserName: _dynamicField(json, 'otherUserName', currentUserId),
+      otherUserPhoto: _dynamicField(json, 'otherUserPhoto', currentUserId),
+    );
+  }
+
+  /// Reads a field that may be stored under `<key>_<currentUserId>` (preferred)
+  /// or the bare `<key>` (legacy fallback).
+  static String _dynamicField(
+    Map<String, dynamic> json,
+    String key,
+    String currentUserId,
+  ) {
+    if (currentUserId.isNotEmpty) {
+      final value = json['${key}_$currentUserId'];
+      if (value != null) return value as String;
+    }
+    return (json[key] ?? '') as String;
+  }
 
   Map<String, dynamic> toJson() => {
     'participants': participants,

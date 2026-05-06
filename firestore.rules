@@ -52,6 +52,13 @@ service cloud.firestore {
         allow create, update: if isOwner(uid) || isAdmin() || isPatient();
         allow delete: if isOwner(uid) || isAdmin();
       }
+
+      // Doctor reviews subcollection
+      match /reviews/{reviewId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isPatient();
+        allow update, delete: if isAdmin();
+      }
     }
 
     // ─── Appointments ─────────────────────────────────────────────────────────
@@ -74,27 +81,68 @@ service cloud.firestore {
     // ─── Chats ────────────────────────────────────────────────────────────────
 
     match /chats/{chatId} {
-      allow read, write: if isSignedIn() &&
+      // Use request.resource for creates (resource.data is null on create).
+      allow read: if isSignedIn() &&
         request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn() &&
+        request.auth.uid in request.resource.data.participants;
+      allow update: if isSignedIn() &&
+        request.auth.uid in resource.data.participants;
+      allow delete: if isAdmin();
 
       match /messages/{msgId} {
         allow read: if isSignedIn() &&
           request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
         allow create: if isSignedIn() &&
-          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants ||
-          // Allow creating new chat
-          true;
-        allow update: if isSignedIn();
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow update: if isSignedIn() &&
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
         allow delete: if isAdmin();
       }
     }
 
-    // ─── Reviews ─────────────────────────────────────────────────────────────
+    // ─── Prescriptions ────────────────────────────────────────────────────────
+
+    match /prescriptions/{prescriptionId} {
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.patientId == request.auth.uid ||
+        resource.data.doctorId  == request.auth.uid
+      );
+      allow create: if isSignedIn() && isDoctor();
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.doctorId == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ─── Notifications ────────────────────────────────────────────────────────
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() &&
+        resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() &&
+        resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() &&
+        (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // ─── Reviews (top-level, legacy) ──────────────────────────────────────────
 
     match /reviews/{reviewId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && isPatient();
       allow update, delete: if isAdmin();
     }
+
+    // ─── App Metadata ─────────────────────────────────────────────────────────
+
+    match /meta/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
   }
 }
+
