@@ -223,6 +223,7 @@ class FirestoreService {
     required DoctorModel doctor,
     required String date,
     required String time,
+    String notes = '',
   }) async {
     final slotRef = _db
         .collection('doctors').doc(doctor.uid)
@@ -252,7 +253,7 @@ class FirestoreService {
         'date': date,
         'time': time,
         'status': 'pending',
-        'notes': '',
+        'notes': notes,
         'fee': doctor.fee,
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -266,9 +267,42 @@ class FirestoreService {
     AppointmentStatus status, {
     String notes = '',
   }) async {
-    final data = <String, dynamic>{'status': status.name};
-    if (notes.isNotEmpty) data['notes'] = notes;
-    await _db.collection('appointments').doc(appointmentId).update(data);
+    final apptRef = _db.collection('appointments').doc(appointmentId);
+    await _db.runTransaction((tx) async {
+      final snapshot = await tx.get(apptRef);
+      if (!snapshot.exists) {
+        throw Exception('Appointment not found');
+      }
+      final data = <String, dynamic>{'status': status.name};
+      if (notes.isNotEmpty) data['notes'] = notes;
+      tx.update(apptRef, data);
+
+      if (status == AppointmentStatus.cancelled) {
+        final appt = snapshot.data() ?? {};
+        final doctorId = appt['doctorId'] as String?;
+        final date = appt['date'] as String?;
+        final time = appt['time'] as String?;
+        if (doctorId != null &&
+            doctorId.isNotEmpty &&
+            date != null &&
+            date.isNotEmpty &&
+            time != null &&
+            time.isNotEmpty) {
+          final slotRef = _db
+              .collection('doctors')
+              .doc(doctorId)
+              .collection('slots')
+              .doc('${date}_$time');
+          final slotSnap = await tx.get(slotRef);
+          if (slotSnap.exists) {
+            tx.update(slotRef, {
+              'isBooked': false,
+              'patientId': null,
+            });
+          }
+        }
+      }
+    });
   }
 
   Stream<List<AppointmentModel>> getPatientAppointments(String patientId) {
@@ -308,6 +342,7 @@ class FirestoreService {
     required String chatId,
     required String senderId,
     required String senderName,
+    required String senderPhoto,
     required String receiverId,
     required String receiverName,
     required String receiverPhoto,
@@ -332,7 +367,7 @@ class FirestoreService {
       'lastMessageTime': FieldValue.serverTimestamp(),
       'unreadCount': {receiverId: FieldValue.increment(1)},
       'otherUserName_$receiverId': senderName,
-      'otherUserPhoto_$receiverId': '',
+      'otherUserPhoto_$receiverId': senderPhoto,
       'otherUserName_$senderId': receiverName,
       'otherUserPhoto_$senderId': receiverPhoto,
     }, SetOptions(merge: true));
