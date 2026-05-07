@@ -298,7 +298,7 @@ class FirestoreService {
             'time': time,
             'isBooked': false,
             'patientId': null,
-          }, SetOptions(merge: true));
+          });
         }
       }
     });
