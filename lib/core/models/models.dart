@@ -310,6 +310,8 @@ class ChatRoomModel {
   final String lastMessage;
   final DateTime? lastMessageTime;
   final Map<String, int> unreadCount;
+  final Map<String, String> otherUserNames;
+  final Map<String, String> otherUserPhotos;
   final String otherUserName;
   final String otherUserPhoto;
 
@@ -319,29 +321,57 @@ class ChatRoomModel {
     this.lastMessage = '',
     this.lastMessageTime,
     this.unreadCount = const {},
+    this.otherUserNames = const {},
+    this.otherUserPhotos = const {},
     this.otherUserName = '',
     this.otherUserPhoto = '',
   });
 
-  factory ChatRoomModel.fromJson(Map<String, dynamic> json, String chatId) => ChatRoomModel(
-    chatId: chatId,
-    participants: List<String>.from(json['participants'] ?? []),
-    lastMessage: json['lastMessage'] ?? '',
-    lastMessageTime: json['lastMessageTime'] != null
-        ? (json['lastMessageTime'] as dynamic).toDate()
-        : null,
-    unreadCount: Map<String, int>.from(json['unreadCount'] ?? {}),
-    otherUserName: json['otherUserName'] ?? '',
-    otherUserPhoto: json['otherUserPhoto'] ?? '',
-  );
+  factory ChatRoomModel.fromJson(Map<String, dynamic> json, String chatId) {
+    final otherNames = <String, String>{};
+    final otherPhotos = <String, String>{};
+    json.forEach((key, value) {
+      if (key.startsWith('otherUserName_')) {
+        final uid = key.substring('otherUserName_'.length);
+        if (uid.isNotEmpty) otherNames[uid] = value?.toString() ?? '';
+      }
+      if (key.startsWith('otherUserPhoto_')) {
+        final uid = key.substring('otherUserPhoto_'.length);
+        if (uid.isNotEmpty) otherPhotos[uid] = value?.toString() ?? '';
+      }
+    });
 
-  Map<String, dynamic> toJson() => {
-    'participants': participants,
-    'lastMessage': lastMessage,
-    'unreadCount': unreadCount,
-    'otherUserName': otherUserName,
-    'otherUserPhoto': otherUserPhoto,
-  };
+    return ChatRoomModel(
+      chatId: chatId,
+      participants: List<String>.from(json['participants'] ?? []),
+      lastMessage: json['lastMessage'] ?? '',
+      lastMessageTime: json['lastMessageTime'] != null
+          ? (json['lastMessageTime'] as dynamic).toDate()
+          : null,
+      unreadCount: Map<String, int>.from(json['unreadCount'] ?? {}),
+      otherUserNames: otherNames,
+      otherUserPhotos: otherPhotos,
+      otherUserName: json['otherUserName'] ?? '',
+      otherUserPhoto: json['otherUserPhoto'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = {
+      'participants': participants,
+      'lastMessage': lastMessage,
+      'unreadCount': unreadCount,
+      'otherUserName': otherUserName,
+      'otherUserPhoto': otherUserPhoto,
+    };
+    otherUserNames.forEach((uid, name) {
+      data['otherUserName_$uid'] = name;
+    });
+    otherUserPhotos.forEach((uid, photo) {
+      data['otherUserPhoto_$uid'] = photo;
+    });
+    return data;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

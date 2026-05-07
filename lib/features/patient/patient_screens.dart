@@ -504,6 +504,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         doctor: widget.doctor,
         date: _formattedDate,
         time: _selectedTime!,
+        notes: _notesCtrl.text.trim(),
       );
 
       if (!mounted) return;

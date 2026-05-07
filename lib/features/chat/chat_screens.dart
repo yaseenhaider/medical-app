@@ -55,10 +55,8 @@ class ChatListScreen extends ConsumerWidget {
                 (p) => p != user.uid,
                 orElse: () => '',
               );
-              final otherName = (chat as dynamic).toJson()['otherUserName_${user.uid}'] as String? ??
-                  chat.otherUserName;
-              final otherPhoto = (chat as dynamic).toJson()['otherUserPhoto_${user.uid}'] as String? ??
-                  chat.otherUserPhoto;
+              final otherName = chat.otherUserNames[user.uid] ?? chat.otherUserName;
+              final otherPhoto = chat.otherUserPhotos[user.uid] ?? chat.otherUserPhoto;
               final unread = chat.unreadCount[user.uid] ?? 0;
 
               return _ChatTile(
@@ -253,6 +251,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         chatId: widget.chatId,
         senderId: user.uid,
         senderName: user.name,
+        senderPhoto: user.photoUrl,
         receiverId: widget.otherUserId,
         receiverName: widget.otherUserName,
         receiverPhoto: widget.otherUserPhoto,
