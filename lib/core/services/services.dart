@@ -299,13 +299,6 @@ class FirestoreService {
               'isBooked': false,
               'patientId': null,
             });
-          } else {
-            tx.set(slotRef, {
-              'date': date,
-              'time': time,
-              'isBooked': false,
-              'patientId': null,
-            });
           }
         }
       }
