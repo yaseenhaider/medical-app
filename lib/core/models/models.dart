@@ -334,8 +334,7 @@ class ChatRoomModel {
       if (key.startsWith('otherUserName_')) {
         final uid = key.substring('otherUserName_'.length);
         if (uid.isNotEmpty) otherNames[uid] = value?.toString() ?? '';
-      }
-      if (key.startsWith('otherUserPhoto_')) {
+      } else if (key.startsWith('otherUserPhoto_')) {
         final uid = key.substring('otherUserPhoto_'.length);
         if (uid.isNotEmpty) otherPhotos[uid] = value?.toString() ?? '';
       }

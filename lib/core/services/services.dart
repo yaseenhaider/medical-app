@@ -293,12 +293,20 @@ class FirestoreService {
               .doc(doctorId)
               .collection('slots')
               .doc('${date}_$time');
-          tx.set(slotRef, {
-            'date': date,
-            'time': time,
-            'isBooked': false,
-            'patientId': null,
-          });
+          final slotSnap = await tx.get(slotRef);
+          if (slotSnap.exists) {
+            tx.update(slotRef, {
+              'isBooked': false,
+              'patientId': null,
+            });
+          } else {
+            tx.set(slotRef, {
+              'date': date,
+              'time': time,
+              'isBooked': false,
+              'patientId': null,
+            });
+          }
         }
       }
     });
