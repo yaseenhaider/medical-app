@@ -15,28 +15,24 @@ import 'package:flutter/foundation.dart'
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
-    if (kIsWeb) return web;
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web. '
+        'Run flutterfire configure.',
+      );
+    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios. '
+          'Run flutterfire configure.',
+        );
       default:
         return android;
     }
   }
-
-  // Android is configured for project: medical-app-fdd22.
-  // Run `flutterfire configure` to configure additional platforms.
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAcqz2GHeTmPWdArSDtRYcfvwzOxFbUs6E',
-    appId: '1:549861900070:android:2b5fe54ee9c602b0b74be7',
-    messagingSenderId: '549861900070',
-    projectId: 'medical-app-fdd22',
-    authDomain: 'medical-app-fdd22.firebaseapp.com',
-    databaseURL: 'https://medical-app-fdd22-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'medical-app-fdd22.firebasestorage.app',
-  );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAcqz2GHeTmPWdArSDtRYcfvwzOxFbUs6E',
@@ -47,13 +43,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'medical-app-fdd22.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAcqz2GHeTmPWdArSDtRYcfvwzOxFbUs6E',
-    appId: '1:549861900070:android:2b5fe54ee9c602b0b74be7',
-    messagingSenderId: '549861900070',
-    projectId: 'medical-app-fdd22',
-    databaseURL: 'https://medical-app-fdd22-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'medical-app-fdd22.firebasestorage.app',
-    iosBundleId: 'com.mediconnect.app1',
-  );
 }
