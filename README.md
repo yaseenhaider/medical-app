@@ -35,7 +35,7 @@ In Firebase Console sidebar, enable each of these:
 
 ### 2.3 Add Android App
 1. In Firebase Console → Project Settings → Add App → Android
-2. Android package name: `com.yourname.doctor_app`
+2. Android package name: `com.mediconnect.app1`
    - You can find/change this in `android/app/build.gradle` → `applicationId`
 3. Download `google-services.json`
 4. Place it in: `android/app/google-services.json`
@@ -115,7 +115,7 @@ android {
     compileSdkVersion 34
 
     defaultConfig {
-        applicationId "com.yourname.doctor_app"  // match Firebase
+        applicationId "com.mediconnect.app1"  // match Firebase
         minSdkVersion 23
         targetSdkVersion 34
         versionCode 1
